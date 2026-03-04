@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Galeria • Workshop Contabilizare</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --azul-escuro:#081726;
+    --dourado:#d4af37;
+}
+
+body{
+    margin:0;
+    background:var(--azul-escuro);
+    font-family:'Inter', sans-serif;
+    color:white;
+}
+
+/* TÍTULO */
+
+h1{
+    text-align:center;
+    padding:40px 20px 10px;
+    font-family:'Montserrat', sans-serif;
+    color:var(--dourado);
+}
+
+.voltar{
+    display:block;
+    text-align:center;
+    margin:20px 0 30px;
+    color:var(--dourado);
+    text-decoration:none;
+}
+
+/* FILTROS */
+
+.filtros{
+    position:sticky;
+    top:0;
+    z-index:100;
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:15px 10px;
+    margin-bottom:30px;
+
+    background:rgba(8,23,38,0.85);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(212,175,55,0.2);
+}
+
+.filtros button{
+    background:none;
+    border:1px solid var(--dourado);
+    color:var(--dourado);
+    padding:8px 16px;
+    border-radius:20px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.filtros button:hover,
+.filtros button.active{
+    background:var(--dourado);
+    color:var(--azul-escuro);
+}
+
+/* GRID GALERIA */
+
+.galeria{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+    gap:15px;
+    padding:0 40px 60px;
+}
+
+.item{
+    aspect-ratio:4/3;
+    overflow:hidden;
+    border-radius:12px;
+    cursor:pointer;
+}
+
+.item img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transition:0.4s;
+    filter:brightness(92%);
+}
+
+.item:hover img{
+    transform:scale(1.05);
+    filter:brightness(100%);
+}
+
+/* LIGHTBOX */
+
+#lightbox{
+    position:fixed;
+    display:none;
+    top:0;
+    left:0;
+    width:100%;
+    height:100vh;
+    background:rgba(0,0,0,0.95);
+    justify-content:center;
+    align-items:center;
+    z-index:999;
+    flex-direction:column;
+}
+
+#lightbox img{
+    max-width:90%;
+    max-height:80%;
+    border-radius:14px;
+}
+
+.lightbox-actions{
+    margin-top:20px;
+    display:flex;
+    gap:15px;
+}
+
+.lightbox-actions button,
+.lightbox-actions a{
+    background:rgba(0,0,0,0.7);
+    border:1px solid var(--dourado);
+    color:var(--dourado);
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    text-decoration:none;
+}
+
+.zoomed{
+    transform:scale(1.8);
+    cursor:zoom-out;
+}
+
+/* RESPONSIVO */
+
+@media(max-width:768px){
+    .galeria{
+        padding:0 15px 40px;
+        grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+    }
+
+    h1{
+        font-size:22px;
+    }
+}
+
+/* ANIMAÇÃO SUAVE */
+
+.galeria{
+    opacity:1;
+    transition:opacity 0.4s ease, transform 0.4s ease;
+}
+
+.galeria.fade-out{
+    opacity:0;
+    transform:translateY(10px);
+}
+
+.item{
+    opacity:0;
+    transform:translateY(20px);
+    animation:fadeItem 0.5s forwards;
+}
+
+@keyframes fadeItem{
+    to{
+        opacity:1;
+        transform:translateY(0);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<h1>Galeria Completa</h1>
+<a href="home.html" class="voltar">← Voltar para Home</a>
+
+<div class="filtros">
+    <button onclick="filtrar('abertura', this)" class="active">Abertura</button>
+    <button onclick="filtrar('palestra', this)">Palestras</button>
+    <button onclick="filtrar('networking', this)">Networking</button>
+    <button onclick="filtrar('organizacao', this)">Organização</button>
+    <button onclick="filtrar('equipe', this)">Equipe</button>
+</div>
+
+<div class="galeria" id="galeria"></div>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+    <img id="lightbox-img">
+    <div class="lightbox-actions">
+        <button onclick="toggleZoom()">🔍 Zoom</button>
+        <a id="downloadBtn" download>⬇ Download</a>
+    </div>
+</div>
+
+<<script>
+
+const categorias = {
+    abertura: 45,
+    palestra: 73,
+    networking: 23,
+    organizacao: 9,
+    equipe: 20
+};
+
+function carregarImagens(categoria){
+
+    const galeria = document.getElementById("galeria");
+
+    // Fade out suave
+    galeria.classList.add("fade-out");
+
+    setTimeout(() => {
+
+        galeria.innerHTML = "";
+
+        for(let i=1; i<=categorias[categoria]; i++){
+
+            const div = document.createElement("div");
+            div.className = "item";
+
+            // Delay progressivo elegante
+            div.style.animationDelay = `${i * 0.02}s`;
+
+            const img = document.createElement("img");
+            img.src = `${categoria}${i}.jpg`;
+            img.loading = "lazy";
+
+            div.appendChild(img);
+            div.onclick = ()=>abrirLightbox(img.src);
+
+            galeria.appendChild(div);
+        }
+
+        galeria.classList.remove("fade-out");
+
+    }, 400); // mesmo tempo do transition
+}
+
+function filtrar(categoria, botao){
+    carregarImagens(categoria);
+
+    document.querySelectorAll(".filtros button").forEach(btn=>{
+        btn.classList.remove("active");
+    });
+
+    botao.classList.add("active");
+}
+
+function abrirLightbox(src){
+    const lightbox = document.getElementById("lightbox");
+    const img = document.getElementById("lightbox-img");
+    const downloadBtn = document.getElementById("downloadBtn");
+
+    img.src = src;
+    downloadBtn.href = src;
+
+    lightbox.style.display = "flex";
+}
+
+function toggleZoom(){
+    const img = document.getElementById("lightbox-img");
+    img.classList.toggle("zoomed");
+}
+
+document.getElementById("lightbox").addEventListener("click", function(e){
+    if(e.target.id === "lightbox"){
+        this.style.display="none";
+    }
+});
+
+carregarImagens("abertura");
+
+</script>
+
+</body>
+</html>
